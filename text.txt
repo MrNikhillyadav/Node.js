@@ -1,0 +1,53 @@
+# Mongoose
+
+Schema - Define the structure
+    Schema model
+    connect db
+
+    Using model we do CRUD Operations
+        use async/await 
+            - to fetch allDbUsers using User.find({}) method : Can be use to read all the users without mapping over them.
+            - to fetch id of users using User.findById(req.params.id) : Can be use to get a specific user data.
+
+            some functions that makes life easier:
+            *(User is Schema Model name here which is collection in MongoDB and tables in SQL)*
+               - User.find({}) -> gets all the collection objects i.e. users : Used in Get/ Method
+               - User.findById(req.params.id) -> gets the object with the id  : Used in Get/ Method
+               - User.findByIdAndUpdate(req.params.id) -> get the object and Update it : Used in PATCH/ Method
+               - User.findByIdAndDelete(req.params.id) -> gets the object and Delete it : Used in DELETE/ Method.
+
+#MVC Pattern
+
+Folder structure :
+    > models
+        user.js
+    > controllers (contains handler functions) Note: Controller me hum isolated function banate h jo models ko use kr rhe hote h.
+        user.js
+    > routes
+        user.js
+    > views
+    > middlewares
+        index.js
+
+files :
+    connection.js 
+
+    models -> store all the Schema/collection/tables
+    routes -> uses express.router()
+                - build & use userRouter variable to use with app.use('/user', userRouter) 
+
+            -> use of: router.route('/') .get( fun1 ) .post( func2 ) etc.
+
+
+
+User -> routes call krta h , routes -> controllers ko call krte h , controllers -> models ko change krta h -> models -> views me data dalega
+    users -> routes -> controllers -> models -> views
+
+
+
+
+
+
+
+
+
