@@ -104,3 +104,6 @@
 1727113257457- ::1- GET- /api/user/66ed557753afc7d24f574ced
 1727113264154- ::1- GET- /api/users/66ed557753afc7d24f574ced
 1727113298292- ::1- GET- /api/users/
+1727517487578- ::1- GET- /api/users/
+1727517545201- ::1- POST- /api/users
+1727517563584- ::1- GET- /api/users/
