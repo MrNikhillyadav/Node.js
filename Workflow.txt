@@ -1,0 +1,119 @@
+    REST API - JSON
+
+    GET/user - HTML Document render
+    GET/api/user - list all users : DONE
+
+    GET/api/user/1 - Get the user with ID 1 : DONE
+    GET/api/user/2 - Get the user with ID 2 : DONE
+
+    Dynamic PATH PARAMETER
+    GET/api/user/:id
+    :id -> Variable| Dynamic
+
+    POST/api/users - Create new user            : DONE
+
+    PATCH/api/users/1 - Edit the user with ID 1     : DONE
+
+    DELETE/api/users/1 - delete the user with ID 1
+
+    Express middlewares
+        - run at every request - response .
+        - used to validate data/users
+        - multiple middlewares can be used btw client & server.
+
+    4 types of STATUS Codes
+
+
+
+   -------------------------------------------------------------------------
+     
+# Mongoose
+
+Schema - Define the structure
+    Schema model
+    connect db
+
+    Using model we do CRUD Operations
+        use async/await 
+            - to fetch allDbUsers using User.find({}) method : Can be use to read all the users without mapping over them.
+            - to fetch id of users using User.findById(req.params.id) : Can be use to get a specific user data.
+
+            some functions that makes life easier:
+            *(User is Schema Model name here which is collection in MongoDB and tables in SQL)*
+               - User.find({}) -> gets all the collection objects i.e. users : Used in Get/ Method
+               - User.findById(req.params.id) -> gets the object with the id  : Used in Get/ Method
+               - User.findByIdAndUpdate(req.params.id) -> get the object and Update it : Used in PATCH/ Method
+               - User.findByIdAndDelete(req.params.id) -> gets the object and Delete it : Used in DELETE/ Method.
+
+
+ # MONGODB commands use in Mongo Shell.
+
+        - show dbs 
+        - use db 
+        - show collections 
+        - db.dropDatabase()
+        - db.users.find({})
+        - db.users.insertOne({name: 'John', age: 30})
+        - db.users.updateOne({name: 'John'}, {age: 31})
+        - db.users.deleteOne({name: 'John'})
+        - db.users.drop()
+
+
+#MVC Pattern
+
+Folder structure :
+    > models
+        user.js
+    > controllers (contains handler functions) Note: Controller me hum isolated function banate h jo models ko use kr rhe hote h.
+        user.js
+    > routes
+        user.js
+    > views
+    > middlewares
+        index.js
+
+files :
+    connection.js 
+
+
+    Role of folders:
+    - models -> store all the Schema/collection/tables
+    - routes -> uses express.router() 
+    - controllers -> uses models to perform CRUD operations
+    - views -> templates for rendering
+    - middlewares -> functions that can be used in multiple routes
+
+                - build & use userRouter variable to use with app.use('/user', userRouter) 
+    
+                -> use of: router.route('/') .get( fun1 ) .post( func2 ) etc.
+
+
+
+
+    workflow : 
+        User -> routes call krta h , routes -> controllers ko call krte h , controllers -> models ko change krta h -> models -> views me data dalega
+
+            routes ->  controllers -> models -> views -> templates -> html files -> browser renders -> user sees the data
+     
+            views -> render krta h data ko user ko dikhata h.
+            middlewares -> use krte h to check user is logged in or not, or any other
+            controllers -> isolated functions to handle the request and response
+
+
+    
+         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
