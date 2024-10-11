@@ -99,10 +99,16 @@ files :
             middlewares -> use krte h to check user is logged in or not, or any other
             controllers -> isolated functions to handle the request and response
 
+
+
+
 -----------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Project - URL  Shortener
 
+
+
+
+Project - URL  Shortener
 
 Authentication Workflow:
 
@@ -193,6 +199,244 @@ Authentication Workflow:
 
     
          
+==================================================================================================
+
+SetUp : 
+    - npm init
+    - npm i express : for server building
+    - npm i mongoose : to connect to database.
+
+    index.js file
+
+    Make folders:
+        -routes
+            url.js
+        -models
+            url.js
+        -controllers
+            url.js (async function hota h isme)
+
+    install nonoid from web
+        npm i nanoid
+
+---------------------------------------------------------
+
+/ server-side rendering  engines : EJS, PUG etc.
+    - npm i EJS
+        (The .ejs extension indicates that it's a template file for the EJS (Embedded JavaScript) templating engine.)
+    
+    //index.js
+    - Set the engine
+        app.set('view engine', 'ejs');
+
+    - set the path to module to render
+        app.set('views', path.join(__dirname, 'views'));
+
+    - create hoem.ejs  file in views folder
+        Important : To work with this file, static Router.js file is required.
+
+
+    - create staticRouter.js file to handle home.ejs file in views.
+         res.render('filename', {data}) : data is object
+
+    working: When a request is made to the server, the server will render 
+             the home.ejs template file by injecting dynamic data into it, using the EJS templating engine.
+
+
+------------------------------------------------------------------------------------------------------
+
+Authentication Workflow:
+
+1. create a new collection to add Authentication data to database    
+    -   for that create a new model 'user.js'.
+    -   create a new route 'user.js'.
+    -   create a new controller 'user.js' to handle user registration and login.
+
+2. import the route as userRoute in index.js file.
+
+3. create a signup.ejs file  in views folder.
+            - create a signup route in StaticRouter file.
+                - redirect to home page if user signed Up.
+
+4. create a login.ejs file  in views folder.
+            - create a login route in StaticRouter file.
+                - redirect to home page if successful login.
+
+    We need to create a unique Id called session ID for each user.
+    We can use a library called 'uuid' for this.
+
+5.  Set User Session :
+        - import uuid in Contoller/user.js  file.
+        - Now use uuid to generate a unique session id for each logged in user.
+              
+        - create a folder 'service'
+            create a file 'auth.js'.
+                - Create a map function 'sessionIdToUserMap'.
+                - create a function getUser
+                - create a function setUser
+
+            >   NOTE: -------------------------------------------------  
+                    1.      sessionToUseMap is not shown in the code snippet,
+                            but it's likely a map that stores sessionIds as keys and
+                            associated user objects as values.
+
+                    2.      setUser  (from ../service/auth) stores the sessionId and
+                            associated user in a session map
+                ------------------------------------------------------------
+
+        -   import  {setUser}  from '../service/auth' in controller/user.js file.
+                -  use setUser to set user session.
+                
+
+
+6. Set Cookie :
+            The sessionId is set as a cookie named uid 
+            in the user's browser using :
+            
+                res.cookie('uid', sessionId)
+
+7. Ab simple h, bas hume middleware bana kr cookie ke value leni h,
+        - create a middlewares folder
+            - create a file 'auth.js'.
+                - create a async function 'restrictedToLoggInUserOnly()'.
+
+                - validate krna h user ko using cookies details:
+                    -   use req.cookies.uid | to get the sessionId from the cookie.
+                    -   use getUser function from auth.js | to get the user associated with the sessionId.
+                    -   if user is not found | return a 401 status code | redirect to login page.
+                    -    if user is found | proceed with the request.
+                            set :
+                            req.user = user; |  to set the user in the request object.
+                            next();          | to proceed with the next middleware in the stack. 
+
+        - install cookies-parser
+        - import cookieParser from 'cookies-parser' in index.js file and use it.
+        - import restrictedToLoggInUserOnly from middleware/auth.js in index.js file and use it to any route that needs to be protected.
+
+
+8.  We want to display only those urls that are generated by the logged in user only.
+    Urls generated by other user should not be displayed to others.
+
+    - add a new property  to url Schema :
+        -   type : mongoose.Schema.Types.ObjectId,
+        -   ref : 'user',
+    
+    -   add a new async function 'checkAuth' to just check the if user if logged in.
+    -   use checkAuth middleware with staticRouter route.
+
+    -   In staticRouter.js file :
+
+        -   use req.user to get the user associated with the request.
+        -   use req.user._id to get the id of the user associated with the request.
+        -   use mongoose.model('user').findById(req.user._id) to get the user object.
+        
+       PROBLEM IN STATEFULL Authentication
+            Problem 1 - Every time server restarts, user gets logged  out.
+            Problem 2 - It is memory intensive  and can be a bottleneck in high traffic applications.
+            Problem 3 - It is not scalable.
+
+
+9.       To solve this, we use STATELESS  Authentication.
+        
+            - Unlike statefull , Stateless Authentication don't maintain a state on the server.
+            - User aayega, PAYLOAD/data dega, server TOKEN generate krega.
+            - server stores the user PAYLOAD, and the STATE in that TOKEN itself and locks it.
+            - this token will go to the server with each request, to keep you logged In.
+
+    REMEMBER:    
+        In Statefull Authentication, server stores the user Payload using sessions.
+        In Stateless Authentication, tokens ko generate krte hain to store user's Payload.
+
+--------------------------------------------------------------------------------------------------------------
+
+10 . Implementing stateless Authentication:
+        
+        - npm i jsonwebtoken
+        - remove the map as we don't need to store the payload anymore.
+
+        - In service/auth.js file  
+            - require the jsonwebtoken as jwt.
+            - Modify setUser function
+                - add const payload object and return jwt.sign(payload,secretkey) | or directly pass the whole user to jwt.sign() function.
+            - create this secretkey also to pass.
+            ( secretkey == Stamp | Jiske pass ye secretkey hogi mtlab vo namara token bana skta h.)
+
+Important Points to Remember regarding JWT Authentication :
+    - user server pr  request krta h & gives username and password to authenticate himself.
+    - server DB k pass le jata h data, and if its present,
+    - server generates a new token,
+    - ab hum user ka jo bhi data h(i.e.payload) token me daal dete hain 
+    
+    Now server ki responsibility h is token ko client tak secure way me handover krna.
+        - Two methods for this :
+            via cookies
+            via response.
+
+        1. via Cookie
+            - remember cookies hamesha server hi banata hain,
+            - hum token ko cookie me daal kr user ko send kr dete h.
+            - browser ka default behaviour hota h cookie ko store krleta h.
+
+            - Phir user koi bhi request krta h get|post etc. server pr , browser cookies saath me bhejega.
+            - server check krta h ki user k pass koi uid name ki cookie hain?  
+            - agar uid naam ki cookie hi nahi h means user is logged out.
+            - if cookie is available, server token ki value nikaal lega to validate.
+            - token me user info already hain hi, uss se hum logged in user ka naam pata laga skte hain.
+
+            Important fact about cookie:
+            - cookie is a browser feature, isko mobile pr use nahi kr skte.
+
+            - cookies is domain specific.
+                - like fb login kia, browser got fb cookie.
+                - now user na kisi server pr login kia and phir request kiya, 
+                  to us server pr to fb cookie bhi local cookies k saath chali jaayegi! ? 
+
+                - But aise nahi hota h, cookie ek specific domain pr hi jaati hai. like: localhost/, jwt.io/ , www.piyushgarg.com/ etc.
+
+ 
+
+        2. via response
+            - res.json({token}) se Mobile device pr token send kr dete h.
+            - now mobile device pr token store krna pdta hai. 
+            - unlike browser, yaha hume token khud server ko bhejna pdega with each request. 
+            - Token is send to server via Header named 'AUTHORIZATION'.
+                Authorization : Beared <Token>.
+AUTHORIZATION: 
+            - To validate the token, In middleware/Auth.js  file:
+                - use req.headers["Authorization"] to check if we have Authorization Header value or not, also set req.user = null.
+
+                    const authorizationHeaderValue = req.headers["Authorization "];
+                    if(! authorizationHeaderValue || authorizationHeaderValue.startsWith("Bearer"){return next()});
+                
+                - if we get the value available, 
+
+                    - It will be in format : Beared <Token>.
+                    - To get the token, use : authorizationHeaderValue.split("Bearer")[1] and save it in variable 'token'.
+                    - .Spit will create an array : [" ', 4845555.....etc.]
+                    - It will give you the value of TOKEN present at 1 Index in array.
+
+                    - call getUser(token).
+                    - req.user = user,
+                    - next()
+                
+                Validate using Postman, by sending Data from frontend.
+
+            Refer : Piyush gard Video : At 23 Min.
+
+ Proceed with Authorization : 
+
+        - make a middleware function restrictToRole() ....like for Admin, user etc.
+
+        some functions used: 
+            - startsWith()
+            - .Spit()
+            - restrictTo()
+
+        WATCH AUTHORIZATION VIDEO 20 MINS.
+
+======================================================================================================================================================
+
+Build : Discord Bot.
 
 
 
